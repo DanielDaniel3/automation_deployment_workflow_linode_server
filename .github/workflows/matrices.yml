@@ -1,0 +1,68 @@
+---
+#
+# Ansible managed
+#
+
+name: Ansible Molecule
+
+on:
+  push:
+    tags_ignore:
+      - '*'
+  pull_request:
+  schedule:
+    - cron: '1 1 1 * *'
+
+jobs:
+  lint:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+        with:
+          path: "${{ github.repository }}"
+      - name: molecule
+        uses: robertdebock/molecule-action@4.0.7
+        with:
+          command: lint
+  test:
+    needs:
+      - lint
+    runs-on: ubuntu-20.04
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - image: "debian"
+            tag: "latest"
+          - image: "debian"
+            tag: "bookworm"
+          - image: "fedora"
+            tag: "35"
+          - image: "fedora"
+            tag: "latest"
+          - image: "fedora"
+            tag: "rawhide"
+          - image: "ubuntu"
+            tag: "latest"
+          - image: "ubuntu"
+            tag: "focal"
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+        with:
+          path: "${{ github.repository }}"
+      - name: molecule
+        uses: robertdebock/molecule-action@4.0.7
+        with:
+          image: ${{ matrix.config.image }}
+          tag: ${{ matrix.config.tag }}
+
+# un exemple de matrice 
+# cet exemple permet de lancer des tests sur des roles Ansible avec molecule sur différents OS. 
+# actions/github-script, permet d'interagir avec l'api de github ; 
+
+# CLI github gh permet d'interagir avec github depuis notre terminal ; 
+# act est un outil open source qui vous permet de tester sur votre machine de travail vos workflows avant de les pousser sur votre projet GitHub.
+
+# Vous l'aurez compris, GitHub Actions est une puissante solution de CI/CD intégrée qui offre de nombreuses fonctionnalités pour automatiser et améliorer vos projets.
